@@ -1,0 +1,7 @@
+<div id="comments-list-{{ post.id }}">
+    {% for comment in comments %}
+        <p><strong>{{ comment.author }}:</strong> {{ comment.content }}</p>
+    {% empty %}
+        <p>No comments yet.</p>
+    {% endfor %}
+</div>
