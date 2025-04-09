@@ -1,206 +1,234 @@
 {% load static %}
-{% block header %} {% include 'navbar.html' %} {% endblock header %}
+{% block header %}
+  {% include 'navbar.html' %}
+{% endblock %}
 {% block content %}
-<!DOCTYPE html>
-<html lang="en">
-  <body>
-    <!-- Navigation -->
-
-    <!-- Page Content -->
-    <div class="container">
-      {% if messages %}
-        {% for mess in messages %}
-          <div id="alert" style="margin-bottom: 0px;" class="alert alert-{{mess.tags}}" role="alert">
-            {{mess}}
-          </div>
-        {% endfor %}
-      {% endif %}
-      <script type="text/javascript">
-        setTimeout(function () {
-          $('#alert').alert('close');
-        }, 4000);
-      </script>
-      <div class="row">
-        <h3 class="my-4">@TransportSimple
-          <small>Quora</small>
-        </h3>
-
-        <!-- Blog Entries Column -->
-        <div class="col-md-8">
-          <!-- Add Post Section -->
-          <div class="card mb-4 p-3">
-            <span class="mb-1">Ask a Question or Share a Post</span>
-            <form method="POST" action="{% url 'home' %}" enctype="multipart/form-data">
-              {% csrf_token %}
-              <div class="d-flex align-items-start mb-3">
-                  <img src="{% static 'assets/profile.jpeg' %}" alt="Profile Picture" class="rounded-circle me-3" style="width: 50px; height: 50px; margin-left: 10px;">
-                  <div class="flex-grow-1">
-                      {{ form.content }}
-                  </div>
-              </div>
-              <div class="d-flex justify-content-between align-items-center mt-3">
-                  <label for="upload" class="btn btn-light me-2" style="margin-left: 10px;">
-                      <i class="fa fa-paperclip" aria-hidden="true"></i>
-                  </label>
-                  {{ form.upload }}
-                  <div class="d-flex">
-                      <button type="submit" class="btn btn-primary btn-sm me-3">Post</button>
-                      <button type="reset" class="btn btn-light btn-sm">Clear</button>
-                  </div>
-              </div>
-          </form>
-          </div>
-
-          <!-- Post List Section -->
-          {% for post in post_list %}
-<div class="card mb-4">
-    <div class="post-container p-3">
-        <div class="post-header">
-            <strong><i class="fa fa-user" aria-hidden="true"></i>&nbsp;{{ post.author }}</strong> • {{ post.created_on|date:"M d, Y" }}
-        </div>
-        <p>{{ post.content }}</p>
-
-        {% if post.upload %}
-        <img src="{{ post.upload.url }}" class="img-fluid rounded mt-2">
+  <!DOCTYPE html>
+  <html lang="en">
+    <body>
+      <div class="container">
+        {% if messages %}
+          {% for mess in messages %}
+            <div id="alert" style="margin-bottom: 0px;" class="alert alert-{{ mess.tags }}" role="alert">{{ mess }}</div>
+          {% endfor %}
         {% endif %}
+        <script type="text/javascript">
+          setTimeout(function () {
+            $('#alert').alert('close')
+          }, 4000)
+        </script>
+        <div class="row">
+          <h3 class="my-4">Discuss, Discover, and Drive Smarter!</h3>
 
-        <div class="interaction-buttons">
-            <!-- Like Button -->
-            <button class="btn btn-light like-btn" data-post-id="{{ post.id }}">
-              <i class="fa {% if request.user in post.likes.all %}fa-heart{% else %}fa-heart-o{% endif %}"></i>
-              <span class="like-count">{{ post.likes.count }}</span>
-          </button>
-            <!-- Comment Button -->
-            <button class="btn btn-light comment-btn" data-post-id="{{ post.id }}">
-                💬 <span id="comment-count-{{ post.id }}">{{ post.comments.count }}</span>
-            </button>
-        </div>
-
-        <!-- Comment Section (Initially Hidden) -->
-        <div id="comment-section-{{ post.id }}" class="comment-section" style="display: none;">
-            <form class="comment-form" data-post-id="{{ post.id }}">
+          <!-- Blog Entries Column -->
+          <div class="col-md-8">
+            <!-- Add Post Section -->
+            <div class="card p-3 mb-2">
+              <form method="POST" action="{% url 'home' %}" enctype="multipart/form-data">
                 {% csrf_token %}
-                <textarea name="content" required></textarea>
-                <button type="submit">Comment</button>
-            </form>
-
-            <!-- Comments will be updated dynamically -->
-            <div id="comments-list-{{ post.id }}">
-                {% include "partials/comments_list.html" with post=post comments=post.comments.all %}
+                <div class="d-flex align-items-start mb-2">
+                  <img src="{% static 'assets/profile.jpeg' %}" alt="Profile Picture" class="rounded-circle me-2" style="width: 40px; height: 40px;" />
+                  <div class="flex-grow-1">{{ form.content }}</div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                  <label for="upload" class="btn btn-light p-1"><i class="fa fa-paperclip" aria-hidden="true"></i></label>
+                  <input type="file" id="upload" name="upload" style="display: none;" />
+                  <div class="d-flex">
+                    <button type="submit" class="btn btn-primary btn-sm me-2">Post</button>
+                    <button type="reset" class="btn btn-light btn-sm">Clear</button>
+                  </div>
+                </div>
+              </form>
             </div>
-        </div>
-    </div>
-</div>
-{% endfor %}
 
-<script>
-  document.addEventListener("DOMContentLoaded", function() {
-      // Toggle comment section
-      document.querySelectorAll(".comment-btn").forEach(button => {
-          button.addEventListener("click", function() {
-              let postId = this.getAttribute("data-post-id");
-              let commentSection = document.getElementById(`comment-section-${postId}`);
-              commentSection.style.display = commentSection.style.display === "none" ? "block" : "none";
-          });
-      });
-  
-      // Handle comment form submission via AJAX
-      document.querySelectorAll(".comment-form").forEach(form => {
-          form.addEventListener("submit", function(event) {
-              event.preventDefault();
-              let postId = this.getAttribute("data-post-id");
-              let formData = new FormData(this);
-              
-              fetch(`/comment/${postId}/`, {
-                  method: "POST",
-                  body: formData,
-                  headers: {
-                      "X-Requested-With": "XMLHttpRequest"
-                  }
+            <script>
+              document.addEventListener('DOMContentLoaded', function () {
+                let textarea = document.querySelector('textarea')
+                if (textarea) {
+                  textarea.style.height = '80px'
+                  textarea.style.resize = 'none'
+                  textarea.style.width = '100%'
+                  textarea.style.padding = '5px'
+                  textarea.style.margin = '0'
+                  textarea.placeholder = 'Ask a Question or Share a Post...'
+                }
               })
-              .then(response => response.text())
-              .then(html => {
-                  document.getElementById(`comments-list-${postId}`).innerHTML = html;
-                  this.reset(); // Clear input field
-                  $("#comments-count-" + post_id).html("💬 " + response.comments_count);
-              });
-          });
-      });
-  });
-  </script>
-  
-          <script>
-              document.addEventListener("DOMContentLoaded", function() {
-                  // Like Button Click
-                  document.querySelectorAll(".like-btn").forEach(button => {
-                      button.addEventListener("click", function() {
-                          let postId = this.getAttribute("data-post-id");
-                          let likeIcon = this.querySelector("i");
-                          let likeCount = this.querySelector(".like-count");
-          
-                          fetch(`/like/${postId}/`, { method: "POST", headers: { "X-CSRFToken": "{{ csrf_token }}" }})
-                          .then(response => response.json())
-                          .then(data => {
-                              likeCount.textContent = data.likes_count;
-                              likeIcon.classList.toggle("fa-heart");
-                              likeIcon.classList.toggle("fa-heart-o");
-                          });
-                      });
-                  });
-          
-                  // Comment Button Toggle
-                  document.querySelectorAll(".comment-toggle").forEach(button => {
-                      button.addEventListener("click", function() {
-                          let postId = this.getAttribute("data-post-id");
-                          document.getElementById(`comment-section-${postId}`).classList.toggle("show");
-                      });
-                  });
-          
-                  // Comment Form Submit
-                  document.querySelectorAll(".comment-form").forEach(form => {
-                      form.addEventListener("submit", function(e) {
-                          e.preventDefault();
-                          let postId = this.getAttribute("data-post-id");
-                          let content = this.querySelector(".comment-content").value;
-                          let commentCount = document.querySelector(`.comment-toggle[data-post-id='${postId}'] .comment-count`);
-          
-                          fetch(`/comment/${postId}/`, {
-                              method: "POST",
-                              headers: { "X-CSRFToken": "{{ csrf_token }}", "Content-Type": "application/json" },
-                              body: JSON.stringify({ content: content })
-                          })
-                          .then(response => response.json())
-                          .then(data => {
-                              if (!data.error) {
-                                  commentCount.textContent = data.comments_count;
-                                  this.querySelector(".comment-content").value = "";
-                              }
-                          });
-                      });
-                  });
-              });
-          </script>
+            </script>
 
+            <!-- Post List Section -->
+            {% for post in post_list %}
+              <div class="card mb-4">
+                <div class="post-container p-3">
+                  <div class="post-header">
+                    <strong><i class="fa fa-user" aria-hidden="true"></i>&nbsp;{{ post.author }}</strong> • {{ post.created_on|date:'M d, Y' }}
+                  </div>
+                  <p>
+                    {% if post.content|wordcount > 100 %}
+                      <span class="short-content-{{ post.id }}">{{ post.content|truncatewords:30 }}...</span>
+                      <span class="full-content-{{ post.id }}" style="display: none;">{{ post.content }}</span>
+                      <a href="javascript:void(0);" class="read-more-toggle" data-post-id="{{ post.id }}">Read more</a>
+                    {% else %}
+                      {{ post.content }}
+                    {% endif %}
+                  </p>
 
-          <!-- Pagination -->
-          {% comment %} <ul class="pagination justify-content-center mb-4">
-            <li class="page-item">
-              <a class="page-link" href="#">← Older</a>
-            </li>
-            <li class="page-item disabled">
-              <a class="page-link" href="#">Newer →</a>
-            </li>
-          </ul> {% endcomment %}
+                  {% if post.upload %}
+                    <img src="{{ post.upload.url }}" class="img-fluid rounded mt-2" />
+                  {% endif %}
+
+                  <div class="interaction-buttons">
+                    <!-- Like Button -->
+                    <button class="btn btn-light like-btn" data-post-id="{{ post.id }}">
+                      <i class="fa {% if request.user in post.likes.all %}
+                          fa-heart
+                        {% else %}
+                          fa-heart-o
+                        {% endif %}">
+
+                      </i>
+                      <span class="like-count">{{ post.likes.count }}</span>
+                    </button>
+                    <!-- Comment Button -->
+                    <button class="btn btn-light comment-btn" data-post-id="{{ post.id }}">💬 <span id="comment-count-{{ post.id }}">{{ post.comments.count }}</span></button>
+                  </div>
+
+                  <!-- Comment Section (Initially Hidden) -->
+                  <div id="comment-section-{{ post.id }}" class="comment-section" style="display: none;">
+                    <form class="comment-form" data-post-id="{{ post.id }}">
+                      {% csrf_token %}
+                      <textarea name="content" required></textarea>
+                      <button type="submit">Comment</button>
+                    </form>
+
+                    <!-- Comments will be updated dynamically -->
+                    <div id="comments-list-{{ post.id }}">
+                      {% include 'partials/comments_list.html' with post=post comments=post.comments.all %}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+
+            <script>
+              document.addEventListener('DOMContentLoaded', function () {
+                // Toggle comment section
+                document.querySelectorAll('.comment-btn').forEach((button) => {
+                  button.addEventListener('click', function () {
+                    let postId = this.getAttribute('data-post-id')
+                    let commentSection = document.getElementById(`comment-section-${postId}`)
+                    commentSection.style.display = commentSection.style.display === 'none' ? 'block' : 'none'
+                  })
+                })
+              
+                // Handle comment form submission via AJAX
+                document.querySelectorAll('.comment-form').forEach((form) => {
+                  form.addEventListener('submit', function (event) {
+                    event.preventDefault()
+                    let postId = this.getAttribute('data-post-id')
+                    let formData = new FormData(this)
+              
+                    fetch(`/comment/${postId}/`, {
+                      method: 'POST',
+                      body: formData,
+                      headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                      }
+                    })
+                      .then((response) => response.text())
+                      .then((html) => {
+                        document.getElementById(`comments-list-${postId}`).innerHTML = html
+                        this.reset() // Clear input field
+                        $('#comments-count-' + post_id).html('💬 ' + response.comments_count)
+                      })
+                  })
+                })
+              })
+            </script>
+
+            <script>
+              document.addEventListener('DOMContentLoaded', function () {
+                // Like Button Click
+                document.querySelectorAll('.like-btn').forEach((button) => {
+                  button.addEventListener('click', function () {
+                    let postId = this.getAttribute('data-post-id')
+                    let likeIcon = this.querySelector('i')
+                    let likeCount = this.querySelector('.like-count')
+              
+                    fetch(`/like/${postId}/`, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } })
+                      .then((response) => response.json())
+                      .then((data) => {
+                        likeCount.textContent = data.likes_count
+                        likeIcon.classList.toggle('fa-heart')
+                        likeIcon.classList.toggle('fa-heart-o')
+                      })
+                  })
+                })
+              
+                // Comment Button Toggle
+                document.querySelectorAll('.comment-toggle').forEach((button) => {
+                  button.addEventListener('click', function () {
+                    let postId = this.getAttribute('data-post-id')
+                    document.getElementById(`comment-section-${postId}`).classList.toggle('show')
+                  })
+                })
+              
+                // Comment Form Submit
+                document.querySelectorAll('.comment-form').forEach((form) => {
+                  form.addEventListener('submit', function (e) {
+                    e.preventDefault()
+                    let postId = this.getAttribute('data-post-id')
+                    let content = this.querySelector('.comment-content').value
+                    let commentCount = document.querySelector(`.comment-toggle[data-post-id='${postId}'] .comment-count`)
+              
+                    fetch(`/comment/${postId}/`, {
+                      method: 'POST',
+                      headers: { 'X-CSRFToken': '{{ csrf_token }}', 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ content: content })
+                    })
+                      .then((response) => response.json())
+                      .then((data) => {
+                        if (!data.error) {
+                          commentCount.textContent = data.comments_count
+                          this.querySelector('.comment-content').value = ''
+                        }
+                      })
+                  })
+                })
+              })
+                document.addEventListener('DOMContentLoaded', function () {
+                  document.querySelectorAll('.read-more-toggle').forEach(function (link) {
+                    link.addEventListener('click', function () {
+                      const postId = this.getAttribute('data-post-id');
+                      const shortContent = document.querySelector(`.short-content-${postId}`);
+                      const fullContent = document.querySelector(`.full-content-${postId}`);
+                      const isExpanded = fullContent.style.display === 'inline';
+              
+                      if (isExpanded) {
+                        shortContent.style.display = 'inline';
+                        fullContent.style.display = 'none';
+                        this.textContent = 'Read more';
+                      } else {
+                        shortContent.style.display = 'none';
+                        fullContent.style.display = 'inline';
+                        this.textContent = 'Show less';
+                      }
+                    });
+                  });
+                });
+            </script>
+          </div>
+
+          {% block sidebar %}
+            {% include 'sidebar.html' %}
+          {% endblock %}
+          <!-- sidebar -->
         </div>
-
-        {% block sidebar %} {% include 'sidebar.html' %} {% endblock sidebar %}
-        <!-- sidebar -->
+        <!-- /.row -->
       </div>
-      <!-- /.row -->
-    </div>
-    <!-- /.container -->
-  </body>
-</html>
-
-{% endblock content %}
-{% block footer %} {% include 'footer.html' %}{% endblock footer %}
+      <!-- /.container -->
+    </body>
+  </html>
+{% endblock %}
+{% block footer %}
+  {% include 'footer.html' %}
+{% endblock %}

@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 class Post(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='blog_posts', blank=True, null=True)
     content = models.TextField()
-    upload = models.ImageField(upload_to='images/', blank=True, null=True, default='uploads/default.jpg')
+    upload = models.ImageField(upload_to='images/', blank=True, null=True)
     created_on = models.DateTimeField(auto_now_add=True)
     updated_on = models.DateTimeField(auto_now=True)
 
